@@ -1,0 +1,42 @@
+{% extends "shared/base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="page-title mb-0">Notifications</h1>
+  <p class="page-subtitle">Your library alerts and updates.</p>
+</div>
+
+{% if notifications %}
+  {% for notif in notifications %}
+  <div class="card p-3 mb-2 d-flex flex-row gap-3 align-items-start
+    {% if not notif.is_read %}border-primary{% endif %}">
+    <div style="width:40px;height:40px;border-radius:10px;flex-shrink:0;
+                display:flex;align-items:center;justify-content:center;
+      {% if notif.type == 'success' %}background:#d1fae5{% elif notif.type == 'warning' %}background:#fef3c7{% elif notif.type == 'danger' %}background:#fee2e2{% else %}background:#ede9fe{% endif %}">
+      <i class="bi
+        {% if notif.type == 'success' %}bi-check-circle text-success
+        {% elif notif.type == 'warning' %}bi-exclamation-triangle text-warning
+        {% elif notif.type == 'danger' %}bi-x-circle text-danger
+        {% else %}bi-info-circle text-primary{% endif %}"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div class="fw-semibold small">{{ notif.title }}</div>
+      <div class="small text-muted">{{ notif.message }}</div>
+      <div class="small text-muted mt-1">
+        {{ notif.created_at.strftime('%d %b %Y, %H:%M') }}
+      </div>
+    </div>
+    {% if not notif.is_read %}
+      <span class="badge bg-primary">New</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-bell fs-1 d-block mb-3"></i>
+    <h5>No notifications yet</h5>
+    <p>You'll be notified about due dates, fines, and more.</p>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "shared/base.html" %}
+{% block title %}Borrow History{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="page-title mb-0">Borrow History</h1>
+  <p class="page-subtitle">Complete record of all borrowing activity.</p>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Student</th>
+          <th>Book</th>
+          <th>Borrowed</th>
+          <th>Due</th>
+          <th>Returned</th>
+          <th>Fine</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in borrows %}
+        <tr>
+          <td class="text-muted small">#{{ record.id }}</td>
+          <td class="small fw-semibold">{{ record.user.full_name }}</td>
+          <td class="small">
+            {{ record.book.title[:28] }}
+            {% if record.book.title|length > 28 %}…{% endif %}
+          </td>
+          <td class="small text-muted">
+            {{ record.borrow_date.strftime('%d %b %Y') }}
+          </td>
+          <td class="small">
+            {{ record.due_date.strftime('%d %b %Y') }}
+          </td>
+          <td class="small text-muted">
+            {% if record.return_date %}
+              {{ record.return_date.strftime('%d %b %Y') }}
+            {% else %}
+              <span class="text-warning">Pending</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% if record.fine_amount > 0 %}
+              <span class="text-danger fw-semibold">
+                ₹{{ record.fine_amount }}
+              </span>
+              {% if record.fine_paid %}
+                <span class="badge bg-success ms-1">Paid</span>
+              {% else %}
+                <span class="badge bg-danger ms-1">Unpaid</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if record.status == 'returned' %}
+              <span class="badge bg-success">Returned</span>
+            {% elif record.status == 'overdue' %}
+              <span class="badge bg-danger">Overdue</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Borrowed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
+            No borrow history yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "shared/base.html" %}
+{% block title %}Librarian Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card { border-radius:16px; padding:22px; color:#fff; position:relative; overflow:hidden; }
+  .stat-card::after { content:''; position:absolute; right:-20px; top:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .stat-primary { background:linear-gradient(135deg,#4f46e5,#7c3aed); }
+  .stat-success { background:linear-gradient(135deg,#10b981,#059669); }
+  .stat-warning { background:linear-gradient(135deg,#f59e0b,#d97706); }
+  .stat-info    { background:linear-gradient(135deg,#06b6d4,#0284c7); }
+  .stat-value   { font-size:2rem; font-weight:700; line-height:1.1; }
+  .stat-label   { font-size:.8rem; opacity:.85; font-weight:500; }
+  .stat-icon    { width:48px; height:48px; border-radius:12px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title mb-0">Librarian Dashboard</h1>
+    <p class="page-subtitle">Welcome, {{ current_user.full_name }}!</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('librarian.issue') }}" class="btn btn-primary">
+      <i class="bi bi-arrow-right-circle me-2"></i>Issue Book
+    </a>
+    <a href="{{ url_for('librarian.accept_return') }}"
+       class="btn btn-outline-success">
+      <i class="bi bi-arrow-left-circle me-2"></i>Accept Return
+    </a>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div class="stat-value">{{ total_books }}</div>
+      <div class="stat-label">Total Books</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-warning">
+      <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="stat-value">{{ active_borrows }}</div>
+      <div class="stat-label">Active Borrows</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-danger" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+      <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="stat-value">{{ overdue_count }}</div>
+      <div class="stat-label">Overdue Books</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-success">
+      <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="stat-value">{{ returned_today }}</div>
+      <div class="stat-label">Returned Today</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <a href="{{ url_for('librarian.issue') }}"
+       class="card p-4 text-decoration-none h-100
+              d-flex flex-row align-items-center gap-3">
+      <div style="width:52px;height:52px;background:#ede9fe;border-radius:12px;
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="bi bi-arrow-right-circle-fill text-primary fs-4"></i>
+      </div>
+      <div>
+        <div class="fw-bold">Issue Book</div>
+        <div class="small text-muted">Issue a book to a student</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('librarian.accept_return') }}"
+       class="card p-4 text-decoration-none h-100
+              d-flex flex-row align-items-center gap-3">
+      <div style="width:52px;height:52px;background:#d1fae5;border-radius:12px;
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="bi bi-arrow-left-circle-fill text-success fs-4"></i>
+      </div>
+      <div>
+        <div class="fw-bold">Accept Return</div>
+        <div class="small text-muted">Process a book return</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('librarian.active_borrows') }}"
+       class="card p-4 text-decoration-none h-100
+              d-flex flex-row align-items-center gap-3">
+      <div style="width:52px;height:52px;background:#fef3c7;border-radius:12px;
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="bi bi-list-check text-warning fs-4"></i>
+      </div>
+      <div>
+        <div class="fw-bold">Active Borrows</div>
+        <div class="small text-muted">View all borrowed books</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Recent Borrows Table -->
+<div class="card p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0">
+      <i class="bi bi-clock-history text-primary me-2"></i>
+      Active & Overdue Borrows
+    </h6>
+    <a href="{{ url_for('librarian.active_borrows') }}"
+       class="btn btn-sm btn-outline-primary">View All</a>
+  </div>
+
+  {% if recent_borrows %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Student</th>
+          <th>Book</th>
+          <th>Borrow Date</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in recent_borrows %}
+        <tr>
+          <td class="text-muted small">#{{ record.id }}</td>
+          <td>
+            <div class="small fw-semibold">{{ record.user.full_name }}</div>
+            <div class="small text-muted">{{ record.user.email }}</div>
+          </td>
+          <td class="small">
+            {{ record.book.title[:30] }}
+            {% if record.book.title|length > 30 %}…{% endif %}
+          </td>
+          <td class="small text-muted">
+            {{ record.borrow_date.strftime('%d %b %Y') }}
+          </td>
+          <td class="small">
+            {{ record.due_date.strftime('%d %b %Y') }}
+          </td>
+          <td>
+            {% if record.status == 'overdue' %}
+              <span class="badge bg-danger">
+                Overdue {{ record.days_overdue }}d
+              </span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Borrowed</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('librarian.accept_return') }}?borrow_id={{ record.id }}"
+               class="btn btn-sm btn-outline-success">
+              Return
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-4 text-muted">
+    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+    No active borrows right now.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

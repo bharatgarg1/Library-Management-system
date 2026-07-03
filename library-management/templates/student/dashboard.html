@@ -1,0 +1,208 @@
+{% extends "shared/base.html" %}
+{% block title %}My Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card { border-radius:16px; padding:20px; color:#fff; position:relative; overflow:hidden; }
+  .stat-card::after { content:''; position:absolute; right:-20px; top:-20px; width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .stat-primary { background:linear-gradient(135deg,#4f46e5,#7c3aed); }
+  .stat-success { background:linear-gradient(135deg,#10b981,#059669); }
+  .stat-warning { background:linear-gradient(135deg,#f59e0b,#d97706); }
+  .stat-danger  { background:linear-gradient(135deg,#ef4444,#dc2626); }
+  .stat-value   { font-size:1.8rem; font-weight:700; }
+  .stat-label   { font-size:.8rem; opacity:.85; }
+  .stat-icon    { width:44px; height:44px; border-radius:10px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:10px; }
+  .book-due-card { border-left:4px solid; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title mb-0">
+      Hello, {{ current_user.full_name.split()[0] }}! 👋
+    </h1>
+    <p class="page-subtitle">Here's your library activity overview.</p>
+  </div>
+  <a href="{{ url_for('student.books') }}" class="btn btn-primary">
+    <i class="bi bi-search me-2"></i>Browse Books
+  </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div class="stat-value">{{ active_count }}</div>
+      <div class="stat-label">Books Borrowed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-success">
+      <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="stat-value">{{ total_borrowed }}</div>
+      <div class="stat-label">Total Borrowed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-warning">
+      <div class="stat-icon"><i class="bi bi-bookmark-heart-fill"></i></div>
+      <div class="stat-value">{{ wishlist_count }}</div>
+      <div class="stat-label">Wishlist</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-danger">
+      <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+      <div class="stat-value">₹{{ unpaid_fines }}</div>
+      <div class="stat-label">Pending Fines</div>
+    </div>
+  </div>
+</div>
+
+<!-- Overdue Alert -->
+{% if overdue_count > 0 %}
+<div class="alert alert-danger d-flex align-items-center gap-3 mb-4">
+  <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+  <div>
+    <strong>{{ overdue_count }} book(s) overdue!</strong>
+    Please return them immediately to avoid higher fines.
+    <a href="{{ url_for('student.fines') }}" class="alert-link ms-2">
+      View Fines →
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+
+  <!-- Currently Borrowed -->
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-book text-primary me-2"></i>
+          Currently Borrowed
+        </h6>
+        <a href="{{ url_for('student.history') }}"
+           class="btn btn-sm btn-outline-primary">
+          View All
+        </a>
+      </div>
+
+      {% if active_borrows %}
+        {% for record in active_borrows %}
+        <div class="book-due-card
+          {% if record.is_overdue %}
+            border-danger" style="background:#fff5f5">
+          {% else %}
+            border-primary" style="background:#f5f3ff">
+          {% endif %}
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">
+                {{ record.book.title }}
+              </div>
+              <div class="text-muted small">
+                {{ record.book.author.name }}
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="small fw-semibold
+                {% if record.is_overdue %}text-danger{% else %}text-primary{% endif %}">
+                Due: {{ record.due_date.strftime('%d %b %Y') }}
+              </div>
+              {% if record.is_overdue %}
+                <span class="badge bg-danger">
+                  {{ record.days_overdue }} days overdue
+                </span>
+              {% else %}
+                <span class="badge bg-primary">Borrowed</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-book fs-2 d-block mb-2"></i>
+          No books currently borrowed.
+          <br/>
+          <a href="{{ url_for('student.books') }}"
+             class="btn btn-primary btn-sm mt-2">
+            Browse Books
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="col-lg-5 d-flex flex-column gap-3">
+
+    <!-- Quick Links -->
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-lightning text-warning me-2"></i>Quick Actions
+      </h6>
+      <div class="d-flex flex-column gap-2">
+        <a href="{{ url_for('student.books') }}"
+           class="btn btn-outline-primary text-start">
+          <i class="bi bi-search me-2"></i>Browse & Search Books
+        </a>
+        <a href="{{ url_for('student.wishlist') }}"
+           class="btn btn-outline-warning text-start">
+          <i class="bi bi-bookmark-heart me-2"></i>
+          My Wishlist ({{ wishlist_count }})
+        </a>
+        <a href="{{ url_for('student.fines') }}"
+           class="btn btn-outline-danger text-start">
+          <i class="bi bi-cash-coin me-2"></i>
+          My Fines (₹{{ unpaid_fines }})
+        </a>
+        <a href="{{ url_for('student.history') }}"
+           class="btn btn-outline-secondary text-start">
+          <i class="bi bi-clock-history me-2"></i>Borrow History
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-activity text-primary me-2"></i>
+        Recent Activity
+      </h6>
+      {% if recent_borrows %}
+        {% for record in recent_borrows %}
+        <div class="d-flex justify-content-between align-items-center
+                    py-2 border-bottom">
+          <div>
+            <div class="small fw-semibold">
+              {{ record.book.title[:25] }}
+              {% if record.book.title|length > 25 %}…{% endif %}
+            </div>
+            <div class="small text-muted">
+              {{ record.borrow_date.strftime('%d %b %Y') }}
+            </div>
+          </div>
+          {% if record.status == 'returned' %}
+            <span class="badge bg-success">Returned</span>
+          {% elif record.status == 'overdue' %}
+            <span class="badge bg-danger">Overdue</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Borrowed</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted small text-center">No activity yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

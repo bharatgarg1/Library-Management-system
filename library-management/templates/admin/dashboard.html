@@ -1,0 +1,285 @@
+{% extends "shared/base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card { border-radius: 16px; padding: 22px; color: #fff; position: relative; overflow: hidden; }
+  .stat-card::after { content:''; position:absolute; right:-20px; top:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .stat-primary { background: linear-gradient(135deg,#4f46e5,#7c3aed); }
+  .stat-success { background: linear-gradient(135deg,#10b981,#059669); }
+  .stat-warning { background: linear-gradient(135deg,#f59e0b,#d97706); }
+  .stat-danger  { background: linear-gradient(135deg,#ef4444,#dc2626); }
+  .stat-info    { background: linear-gradient(135deg,#06b6d4,#0284c7); }
+  .stat-dark    { background: linear-gradient(135deg,#1e293b,#0f172a); }
+  .stat-value   { font-size:2rem; font-weight:700; line-height:1.1; }
+  .stat-label   { font-size:.8rem; opacity:.85; font-weight:500; }
+  .stat-icon    { width:48px; height:48px; border-radius:12px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:1.4rem; }
+  .activity-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .section-title { font-size:1rem; font-weight:700; color:var(--text-primary); margin-bottom:16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title mb-0">Dashboard</h1>
+    <p class="page-subtitle">Welcome back, {{ current_user.full_name }}! Here's what's happening.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <span class="badge bg-success px-3 py-2">
+      <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>System Online
+    </span>
+  </div>
+</div>
+
+<!-- ── Stat Cards Row 1 ─────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-primary h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-book-fill"></i></div>
+      <div class="stat-value">{{ stats.total_books }}</div>
+      <div class="stat-label">Total Books</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-success h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-mortarboard-fill"></i></div>
+      <div class="stat-value">{{ stats.total_students }}</div>
+      <div class="stat-label">Students</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-info h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-value">{{ stats.total_librarians }}</div>
+      <div class="stat-label">Librarians</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-warning h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="stat-value">{{ stats.active_borrows }}</div>
+      <div class="stat-label">Active Borrows</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-danger h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="stat-value">{{ stats.overdue_count }}</div>
+      <div class="stat-label">Overdue</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="stat-card stat-dark h-100">
+      <div class="stat-icon mb-3"><i class="bi bi-cash-coin"></i></div>
+      <div class="stat-value">₹{{ stats.collected_fines }}</div>
+      <div class="stat-label">Fines Collected</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts Row ───────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <!-- Monthly Borrows Line Chart -->
+  <div class="col-lg-8">
+    <div class="card h-100 p-4">
+      <div class="section-title">
+        <i class="bi bi-graph-up text-primary me-2"></i>Monthly Borrows (Last 6 Months)
+      </div>
+      <canvas id="monthlyChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- Category Doughnut Chart -->
+  <div class="col-lg-4">
+    <div class="card h-100 p-4">
+      <div class="section-title">
+        <i class="bi bi-pie-chart text-primary me-2"></i>Books by Category
+      </div>
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── Bottom Row ───────────────────────────────────────────── -->
+<div class="row g-3">
+
+  <!-- Recent Borrows Table -->
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">
+          <i class="bi bi-clock-history text-primary me-2"></i>Recent Borrows
+        </div>
+      </div>
+      {% if recent_borrows %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Book</th>
+              <th>Due Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in recent_borrows %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="https://ui-avatars.com/api/?name={{ record.user.full_name|urlencode }}&background=4f46e5&color=fff&size=28"
+                       class="rounded-circle" width="28" height="28" />
+                  <span class="small fw-semibold">{{ record.user.full_name }}</span>
+                </div>
+              </td>
+              <td class="small text-muted">{{ record.book.title[:30] }}{% if record.book.title|length > 30 %}…{% endif %}</td>
+              <td class="small">{{ record.due_date.strftime('%d %b %Y') }}</td>
+              <td>
+                {% if record.is_overdue %}
+                  <span class="badge bg-danger">Overdue</span>
+                {% elif record.status == 'returned' %}
+                  <span class="badge bg-success">Returned</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">Borrowed</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-inbox fs-2 d-block mb-2"></i>No borrow records yet.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="col-lg-5 d-flex flex-column gap-3">
+
+    <!-- Low Stock Alert -->
+    <div class="card p-4">
+      <div class="section-title">
+        <i class="bi bi-exclamation-triangle text-warning me-2"></i>Low Stock Alert
+      </div>
+      {% if low_stock %}
+        {% for book in low_stock %}
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <div>
+            <div class="small fw-semibold">{{ book.title[:28] }}{% if book.title|length > 28 %}…{% endif %}</div>
+            <div class="small text-muted">{{ book.author.name }}</div>
+          </div>
+          <span class="badge bg-danger">{{ book.available_copies }} left</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-3 text-muted small">
+          <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
+          All books well stocked!
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card p-4">
+      <div class="section-title">
+        <i class="bi bi-activity text-primary me-2"></i>Recent Activity
+      </div>
+      {% if recent_activity %}
+        <div class="d-flex flex-column gap-2">
+          {% for log in recent_activity %}
+          <div class="d-flex gap-2">
+            <div class="activity-dot mt-1
+              {% if 'login' in log.action %}bg-success
+              {% elif 'register' in log.action %}bg-primary
+              {% elif 'logout' in log.action %}bg-secondary
+              {% else %}bg-warning{% endif %}">
+            </div>
+            <div>
+              <div class="small fw-semibold">{{ log.action.replace('_',' ').title() }}</div>
+              <div class="small text-muted">{{ log.created_at.strftime('%d %b, %H:%M') }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small text-center">No activity yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const primaryColor = '#4f46e5';
+
+// ── Monthly Borrows Line Chart ─────────────────────────────
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+  type: 'line',
+  data: {
+    labels: {{ monthly_labels | safe }},
+    datasets: [{
+      label: 'Books Borrowed',
+      data: {{ monthly_data | safe }},
+      borderColor: primaryColor,
+      backgroundColor: 'rgba(79,70,229,0.08)',
+      borderWidth: 2.5,
+      pointBackgroundColor: primaryColor,
+      pointRadius: 4,
+      tension: 0.4,
+      fill: true,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 },
+        grid: { color: 'rgba(0,0,0,0.04)' }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── Category Doughnut Chart ────────────────────────────────
+const catCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(catCtx, {
+  type: 'doughnut',
+  data: {
+    labels: {{ category_labels | safe }},
+    datasets: [{
+      data: {{ category_data | safe }},
+      backgroundColor: [
+        '#4f46e5','#10b981','#f59e0b','#ef4444',
+        '#06b6d4','#8b5cf6','#ec4899','#14b8a6'
+      ],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font: { size: 11 }, padding: 12 }
+      }
+    },
+    cutout: '65%',
+  }
+});
+</script>
+{% endblock %}

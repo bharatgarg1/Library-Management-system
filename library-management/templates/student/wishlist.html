@@ -1,0 +1,61 @@
+{% extends "shared/base.html" %}
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="page-title mb-0">My Wishlist</h1>
+  <p class="page-subtitle">Books you want to read.</p>
+</div>
+
+{% if entries %}
+<div class="row g-3">
+  {% for entry in entries %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card p-3 d-flex flex-row gap-3 align-items-start">
+      <img
+        src="{{ url_for('static', filename='uploads/' ~ entry.book.cover_image) }}"
+        alt="cover" width="60" height="85"
+        style="object-fit:cover;border-radius:6px;flex-shrink:0"
+        onerror="this.src='https://placehold.co/60x85/4f46e5/fff?text=📖'" />
+      <div class="flex-grow-1">
+        <div class="fw-semibold small mb-1">
+          {{ entry.book.title[:40] }}
+          {% if entry.book.title|length > 40 %}…{% endif %}
+        </div>
+        <div class="small text-muted mb-1">
+          {{ entry.book.author.name }}
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary
+                     small mb-2">
+          {{ entry.book.category.name }}
+        </span>
+        <div class="mb-2">
+          {% if entry.book.is_available %}
+            <span class="badge bg-success">Available</span>
+          {% else %}
+            <span class="badge bg-secondary">Unavailable</span>
+          {% endif %}
+        </div>
+        <form method="POST"
+              action="{{ url_for('student.wishlist_remove',
+                                book_id=entry.book.id) }}">
+          <button type="submit"
+                  class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash me-1"></i>Remove
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-bookmark-heart fs-1 d-block mb-3"></i>
+  <h5>Your wishlist is empty</h5>
+  <p>Browse books and add them to your wishlist.</p>
+  <a href="{{ url_for('student.books') }}"
+     class="btn btn-primary">Browse Books</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "shared/base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block public_content %}
+<div class="landing-hero d-flex flex-column">
+
+  <nav class="navbar px-4 py-3">
+    <a class="navbar-brand text-white fw-bold d-flex align-items-center gap-2" href="/">
+      <i class="bi bi-journal-bookmark-fill text-primary fs-4"></i>
+      LibraryOS
+    </a>
+    <div class="ms-auto d-flex gap-2">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-sm">Sign In</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <div class="flex-grow-1 d-flex align-items-center">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-4 fw-bold text-white mb-4">
+            The Smart Way to<br/>
+            <span style="color:#818cf8">Manage Your Library</span>
+          </h1>
+          <p class="text-secondary fs-5 mb-4">
+            Track books, manage borrowing, handle fines, and gain insights —
+            all in one beautiful dashboard.
+          </p>
+          <div class="d-flex gap-3">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4">
+              Get Started <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">
+              Sign In
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-6 mt-5 mt-lg-0">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="card border-0 h-100" style="background:rgba(255,255,255,.06)">
+                <div class="card-body p-3">
+                  <i class="bi bi-book-fill fs-3 text-primary mb-2 d-block"></i>
+                  <h6 class="text-white">Book Management</h6>
+                  <p class="small mb-0" style="color:#94a3b8">Add, edit, categorize books with cover images.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 h-100" style="background:rgba(255,255,255,.06)">
+                <div class="card-body p-3">
+                  <i class="bi bi-arrow-left-right fs-3 text-success mb-2 d-block"></i>
+                  <h6 class="text-white">Borrowing Workflow</h6>
+                  <p class="small mb-0" style="color:#94a3b8">Issue, track, and accept returns easily.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 h-100" style="background:rgba(255,255,255,.06)">
+                <div class="card-body p-3">
+                  <i class="bi bi-graph-up-arrow fs-3 text-warning mb-2 d-block"></i>
+                  <h6 class="text-white">Analytics</h6>
+                  <p class="small mb-0" style="color:#94a3b8">Charts and reports to track library health.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 h-100" style="background:rgba(255,255,255,.06)">
+                <div class="card-body p-3">
+                  <i class="bi bi-shield-check fs-3 text-danger mb-2 d-block"></i>
+                  <h6 class="text-white">Role-Based Access</h6>
+                  <p class="small mb-0" style="color:#94a3b8">Admin, Librarian, and Student roles.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-3" style="color:#475569">
+    <small>© 2025 LibraryOS · Built with Flask</small>
+  </footer>
+
+</div>
+{% endblock %}

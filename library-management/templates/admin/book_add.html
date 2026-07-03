@@ -1,0 +1,155 @@
+{% extends "shared/base.html" %}
+{% block title %}Add Book{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title mb-0">Add New Book</h1>
+    <p class="page-subtitle">Fill in the details to add a book to the library.</p>
+  </div>
+  <a href="{{ url_for('admin.books') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Back to Books
+  </a>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="row g-4">
+
+    <!-- Left Column -->
+    <div class="col-lg-8">
+
+      <!-- Basic Info -->
+      <div class="card p-4 mb-4">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-info-circle text-primary me-2"></i>Basic Information
+        </h6>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Book Title *</label>
+          {{ form.title(class="form-control", placeholder="e.g. Introduction to Algorithms") }}
+          {% for e in form.title.errors %}
+            <div class="text-danger small">{{ e }}</div>
+          {% endfor %}
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Author Name *</label>
+            {{ form.author_name(class="form-control", placeholder="e.g. Thomas H. Cormen") }}
+            {% for e in form.author_name.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Category *</label>
+            {{ form.category_id(class="form-select") }}
+            {% for e in form.category_id.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="form-label fw-semibold small">Description</label>
+          {{ form.description(class="form-control", rows=3,
+             placeholder="Brief description of the book…") }}
+        </div>
+      </div>
+
+      <!-- Publication Details -->
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-journal-text text-primary me-2"></i>Publication Details
+        </h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">ISBN</label>
+            {{ form.isbn(class="form-control", placeholder="e.g. 978-0262033848") }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Publisher</label>
+            {{ form.publisher(class="form-control", placeholder="e.g. MIT Press") }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Year</label>
+            {{ form.published_year(class="form-control", placeholder="e.g. 2022") }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Pages</label>
+            {{ form.pages(class="form-control", placeholder="e.g. 1312") }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Edition</label>
+            {{ form.edition(class="form-control", placeholder="e.g. 3rd") }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Language</label>
+            {{ form.language(class="form-control", placeholder="English") }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Shelf Location</label>
+            {{ form.location(class="form-control", placeholder="e.g. A-12") }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+
+      <!-- Cover Image -->
+      <div class="card p-4 mb-4">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-image text-primary me-2"></i>Cover Image
+        </h6>
+        <div class="text-center mb-3">
+          <img id="coverPreview"
+               src="https://via.placeholder.com/150x200/4f46e5/fff?text=Cover"
+               alt="preview"
+               style="width:150px;height:200px;object-fit:cover;border-radius:8px;" />
+        </div>
+        {{ form.cover_image(class="form-control", accept="image/*",
+           onchange="previewImage(event)") }}
+        <small class="text-muted mt-1 d-block">JPG, PNG, GIF, WEBP. Max 5MB.</small>
+      </div>
+
+      <!-- Inventory -->
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-archive text-primary me-2"></i>Inventory
+        </h6>
+        <label class="form-label fw-semibold small">Total Copies *</label>
+        {{ form.total_copies(class="form-control") }}
+        {% for e in form.total_copies.errors %}
+          <div class="text-danger small">{{ e }}</div>
+        {% endfor %}
+        <small class="text-muted mt-1 d-block">
+          Available copies = Total copies on creation.
+        </small>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="mt-4 d-flex gap-2">
+    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+      <i class="bi bi-plus-lg me-2"></i>Add Book
+    </button>
+    <a href="{{ url_for('admin.books') }}" class="btn btn-outline-secondary px-4">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(event) {
+  const reader = new FileReader();
+  reader.onload = function() {
+    document.getElementById("coverPreview").src = reader.result;
+  };
+  reader.readAsDataURL(event.target.files[0]);
+}
+</script>
+{% endblock %}
